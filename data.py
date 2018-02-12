@@ -104,16 +104,17 @@ class AnnotatedDataset:
                                     augmented_original_patch = original_patch.copy()
                                     augmented_ground_truth_patch = ground_truth_patch.copy()
 
-                                    augmented_original_patch = np.rot90(augmented_original_patch, k=n_rotations)
-                                    augmented_ground_truth_patch = np.rot90(augmented_ground_truth_patch, k=n_rotations)
+                                    augmented_original_patch = np.rot90(augmented_original_patch,
+                                                                        k=n_rotations, axes=(1, 2))
+                                    augmented_ground_truth_patch = np.rot90(augmented_ground_truth_patch,
+                                                                            k=n_rotations, axes=(1, 2))
 
                                     if flip_xy:
                                         augmented_original_patch = augmented_original_patch[:, ::-1]
-                                        augmented_ground_truth_patch = augmented_ground_truth_patch[:, ::-1]
+                                        augmented_ground_truth_patch = augmented_ground_truth_patch[::-1]
 
                                     if flip_t:
                                         augmented_original_patch = augmented_original_patch[::-1]
-                                        augmented_ground_truth_patch = augmented_ground_truth_patch[::-1]
 
                                     self.inputs[current_patch_index] = augmented_original_patch
                                     self.outputs[current_patch_index] = augmented_ground_truth_patch

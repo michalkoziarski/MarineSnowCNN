@@ -107,7 +107,7 @@ class AnnotatedDataset:
                                     augmented_original_patch = np.rot90(augmented_original_patch,
                                                                         k=n_rotations, axes=(1, 2))
                                     augmented_ground_truth_patch = np.rot90(augmented_ground_truth_patch,
-                                                                            k=n_rotations, axes=(1, 2))
+                                                                            k=n_rotations, axes=(0, 1))
 
                                     if flip_xy:
                                         augmented_original_patch = augmented_original_patch[:, ::-1]

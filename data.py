@@ -74,3 +74,21 @@ class AnnotatedDataset:
         self.current_index = 0
         self.inputs = np.array(original_patches)
         self.outputs = np.array(ground_truth_patches)
+
+    def batch(self):
+        inputs = self.inputs[self.current_index:(self.current_index + self.batch_size)]
+        outputs = self.outputs[self.current_index:(self.current_index + self.batch_size)]
+
+        self.current_index += self.batch_size
+
+        if self.current_index >= self.length:
+            self.current_index = 0
+
+        return inputs, outputs
+
+    def shuffle(self):
+        indices = list(range(self.length))
+        np.random.shuffle(indices)
+
+        self.inputs = self.inputs[indices]
+        self.outputs = self.outputs[indices]

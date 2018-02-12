@@ -61,14 +61,31 @@ class AnnotatedDataset:
                     for y in range(0, shape[2], patch_size[2] - stride):
                         original_patch = original_frames[t:(t + patch_size[0]),
                                                          x:(x + patch_size[1]),
-                                                         y:(y + patch_size[2])].copy()
+                                                         y:(y + patch_size[2])]
 
                         ground_truth_patch = ground_truth_frames[t:(t + patch_size[0]),
                                                                  x:(x + patch_size[1]),
-                                                                 y:(y + patch_size[2])].copy()
+                                                                 y:(y + patch_size[2])]
 
-                        original_patches.append(original_patch)
-                        ground_truth_patches.append(ground_truth_patch)
+                        for n_rotations in range(4):
+                            for flip_xy in [False, True]:
+                                for flip_t in [False, True]:
+                                    augmented_original_patch = original_patch.copy()
+                                    augmented_ground_truth_patch = ground_truth_patch.copy()
+
+                                    augmented_original_patch = np.rot90(augmented_original_patch, k=n_rotations)
+                                    augmented_ground_truth_patch = np.rot90(augmented_ground_truth_patch, k=n_rotations)
+
+                                    if flip_xy:
+                                        augmented_original_patch = augmented_original_patch[:, ::-1]
+                                        augmented_ground_truth_patch = augmented_ground_truth_patch[:, ::-1]
+
+                                    if flip_t:
+                                        augmented_original_patch = augmented_original_patch[::-1]
+                                        augmented_ground_truth_patch = augmented_ground_truth_patch[::-1]
+
+                                    original_patches.append(augmented_original_patch)
+                                    ground_truth_patches.append(augmented_ground_truth_patch)
 
         self.length = len(original_patches)
         self.current_index = 0

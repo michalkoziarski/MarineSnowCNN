@@ -57,7 +57,7 @@ class AnnotatedDataset:
             for t in range(shape[0] - (patch_size[0] - 1)):
                 for x in range(0, shape[1] - stride, patch_size[1] - stride):
                     for y in range(0, shape[2] - stride, patch_size[2] - stride):
-                        self.length += 8
+                        self.length += 4
 
         logging.info('Allocating memory...')
 
@@ -100,26 +100,22 @@ class AnnotatedDataset:
 
                         for n_rotations in range(2):
                             for flip_xy in [False, True]:
-                                for flip_t in [False, True]:
-                                    augmented_original_patch = original_patch.copy()
-                                    augmented_ground_truth_patch = ground_truth_patch.copy()
+                                augmented_original_patch = original_patch.copy()
+                                augmented_ground_truth_patch = ground_truth_patch.copy()
 
-                                    augmented_original_patch = np.rot90(augmented_original_patch,
-                                                                        k=n_rotations, axes=(1, 2))
-                                    augmented_ground_truth_patch = np.rot90(augmented_ground_truth_patch,
-                                                                            k=n_rotations, axes=(0, 1))
+                                augmented_original_patch = np.rot90(augmented_original_patch,
+                                                                    k=n_rotations, axes=(1, 2))
+                                augmented_ground_truth_patch = np.rot90(augmented_ground_truth_patch,
+                                                                        k=n_rotations, axes=(0, 1))
 
-                                    if flip_xy:
-                                        augmented_original_patch = augmented_original_patch[:, ::-1]
-                                        augmented_ground_truth_patch = augmented_ground_truth_patch[::-1]
+                                if flip_xy:
+                                    augmented_original_patch = augmented_original_patch[:, ::-1]
+                                    augmented_ground_truth_patch = augmented_ground_truth_patch[::-1]
 
-                                    if flip_t:
-                                        augmented_original_patch = augmented_original_patch[::-1]
+                                self.inputs[current_patch_index] = augmented_original_patch
+                                self.outputs[current_patch_index] = augmented_ground_truth_patch
 
-                                    self.inputs[current_patch_index] = augmented_original_patch
-                                    self.outputs[current_patch_index] = augmented_ground_truth_patch
-
-                                    current_patch_index += 1
+                                current_patch_index += 1
 
     def batch(self):
         inputs = self.inputs[self.current_batch_index:(self.current_batch_index + self.batch_size)]

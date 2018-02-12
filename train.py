@@ -52,14 +52,14 @@ checkpoint_path = Path(__file__).parent / 'model'
 model_path = checkpoint_path / 'model.ckpt'
 log_path = Path(__file__).parent / 'log'
 
-summary_writer = tf.summary.FileWriter(log_path)
+summary_writer = tf.summary.FileWriter(str(log_path))
 
 for path in [checkpoint_path, log_path]:
     if not path.exists():
         path.mkdir()
 
 with tf.Session() as session:
-    checkpoint = tf.train.get_checkpoint_state(checkpoint_path)
+    checkpoint = tf.train.get_checkpoint_state(str(checkpoint_path))
 
     if checkpoint and checkpoint.model_checkpoint_path:
         logging.info('Restoring model...')
@@ -94,7 +94,7 @@ with tf.Session() as session:
             else:
                 _, summary = session.run([train_step, summary_step], feed_dict=feed_dict)
 
-                saver.save(session, model_path)
+                saver.save(session, str(model_path))
                 summary_writer.add_summary(summary, epoch)
 
     logging.info('Training complete.')

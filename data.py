@@ -18,6 +18,10 @@ class AnnotatedDataset:
         self.batch_size = batch_size
         self.patch_size = patch_size
         self.stride = stride
+        self.length = 0
+        self.current_batch_index = 0
+        self.inputs = None
+        self.outputs = None
 
         if not DATA_PATH.exists():
             DATA_PATH.mkdir()
@@ -32,8 +36,35 @@ class AnnotatedDataset:
 
                 f.extractall(DATA_PATH)
 
-        original_patches = []
-        ground_truth_patches = []
+        logging.info('Calculating necessary memory...')
+
+        for partition_name in partitions:
+            partition_path = DATA_PATH / partition_name
+
+            if not partition_path.exists():
+                raise ValueError('Unrecognized partition "%s".' % partition_name)
+
+            original_path = partition_path / 'Oryginal'
+
+            frame_ids = [int(path.stem.replace('frame', '')) for path in original_path.glob('*.jpg')]
+            frame_ids.sort()
+
+            original_frames = np.array([imageio.imread(str(original_path / ('frame%d.jpg' % i))) / 255
+                                        for i in frame_ids])
+
+            shape = original_frames.shape
+
+            for t in range(shape[0] - (patch_size[0] - 1)):
+                for x in range(0, shape[1], patch_size[1] - stride):
+                    for y in range(0, shape[2], patch_size[2] - stride):
+                        self.length += 16
+
+        logging.info('Allocating memory...')
+
+        self.inputs = np.empty([self.length] + list(self.patch_size), dtype=np.float32)
+        self.outputs = np.empty([self.length] + list(self.patch_size[1:]), dtype=np.float32)
+
+        current_patch_index = 0
 
         for partition_name in partitions:
             logging.info('Loading "%s" partition...' % partition_name)
@@ -63,7 +94,7 @@ class AnnotatedDataset:
                                                          x:(x + patch_size[1]),
                                                          y:(y + patch_size[2])]
 
-                        ground_truth_patch = ground_truth_frames[t:(t + patch_size[0]),
+                        ground_truth_patch = ground_truth_frames[t + patch_size[0] // 2,
                                                                  x:(x + patch_size[1]),
                                                                  y:(y + patch_size[2])]
 
@@ -84,22 +115,19 @@ class AnnotatedDataset:
                                         augmented_original_patch = augmented_original_patch[::-1]
                                         augmented_ground_truth_patch = augmented_ground_truth_patch[::-1]
 
-                                    original_patches.append(augmented_original_patch)
-                                    ground_truth_patches.append(augmented_ground_truth_patch)
+                                    self.inputs[current_patch_index] = augmented_original_patch
+                                    self.outputs[current_patch_index] = augmented_ground_truth_patch
 
-        self.length = len(original_patches)
-        self.current_index = 0
-        self.inputs = np.array(original_patches)
-        self.outputs = np.array(ground_truth_patches)
+                                    current_patch_index += 1
 
     def batch(self):
-        inputs = self.inputs[self.current_index:(self.current_index + self.batch_size)]
-        outputs = self.outputs[self.current_index:(self.current_index + self.batch_size)]
+        inputs = self.inputs[self.current_batch_index:(self.current_batch_index + self.batch_size)]
+        outputs = self.outputs[self.current_batch_index:(self.current_batch_index + self.batch_size)]
 
-        self.current_index += self.batch_size
+        self.current_batch_index += self.batch_size
 
-        if self.current_index >= self.length:
-            self.current_index = 0
+        if self.current_batch_index >= self.length:
+            self.current_batch_index = 0
 
         return inputs, outputs
 

@@ -49,9 +49,9 @@ class AnnotatedDataset:
             frame_ids = [int(path.stem.replace('frame', '')) for path in original_path.glob('*.jpg')]
             frame_ids.sort()
 
-            original_frames = np.array([imageio.imread(str(original_path / ('frame%d.jpg' % i)))
+            original_frames = np.array([imageio.imread(str(original_path / ('frame%d.jpg' % i))) / 255
                                         for i in frame_ids])
-            ground_truth_frames = np.array([imageio.imread(str(ground_truth_path / ('frame%d.jpg' % i)))
+            ground_truth_frames = np.array([imageio.imread(str(ground_truth_path / ('frame%d.jpg' % i))) / 255
                                             for i in frame_ids])
 
             shape = original_frames.shape

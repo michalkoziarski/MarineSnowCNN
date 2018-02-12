@@ -57,7 +57,7 @@ class AnnotatedDataset:
             for t in range(shape[0] - (patch_size[0] - 1)):
                 for x in range(0, shape[1], patch_size[1] - stride):
                     for y in range(0, shape[2], patch_size[2] - stride):
-                        self.length += 16
+                        self.length += 8
 
         logging.info('Allocating memory...')
 
@@ -98,7 +98,7 @@ class AnnotatedDataset:
                                                                  x:(x + patch_size[1]),
                                                                  y:(y + patch_size[2])]
 
-                        for n_rotations in range(4):
+                        for n_rotations in range(2):
                             for flip_xy in [False, True]:
                                 for flip_t in [False, True]:
                                     augmented_original_patch = original_patch.copy()

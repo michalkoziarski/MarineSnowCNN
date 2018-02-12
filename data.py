@@ -27,7 +27,7 @@ class AnnotatedDataset:
 
             urlretrieve(DATA_URL, ARCHIVE_PATH)
 
-            with zipfile.ZipFile(ARCHIVE_PATH) as f:
+            with zipfile.ZipFile(str(ARCHIVE_PATH)) as f:
                 logging.info('Extracting data archive...')
 
                 f.extractall(DATA_PATH)

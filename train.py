@@ -22,7 +22,8 @@ ground_truth = tf.placeholder(tf.float32)
 global_step = tf.Variable(0, trainable=False, name='global_step')
 network = model.MarineSnowCNN(inputs, params['kernel_size'], params['n_layers'], params['n_filters'])
 
-base_loss = tf.losses.mean_squared_error(network.outputs[:, params['patch_size'][0] // 2], ground_truth)
+base_loss = tf.losses.mean_squared_error(network.outputs[:, params['patch_size'][0] // 2],
+                                         ground_truth[:, params['patch_size'][0] // 2])
 weight_loss = params['weight_decay'] * tf.reduce_sum(tf.stack([tf.nn.l2_loss(weight) for weight in network.weights]))
 loss = base_loss + weight_loss
 
@@ -30,7 +31,7 @@ tf.summary.scalar('base_loss', base_loss)
 tf.summary.scalar('weight_loss', weight_loss)
 tf.summary.scalar('total_loss', loss)
 tf.summary.image('inputs', inputs)
-tf.summary.image('ground_truth', ground_truth)
+tf.summary.image('ground_truth', ground_truth[:, params['patch_size'][0] // 2])
 tf.summary.image('outputs', network.outputs[:, params['patch_size'][0] // 2])
 tf.summary.image('residual', network.residual[:, params['patch_size'][0] // 2])
 

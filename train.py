@@ -14,6 +14,8 @@ logging.basicConfig(level=logging.INFO)
 with open(Path(__file__).parent / 'params.json') as f:
     params = json.load(f)
 
+logging.info('Loading training dataset...')
+
 train_set = data.AnnotatedDataset(params['train_partitions'], params['batch_size'],
                                   params['patch_size'], params['stride'])
 

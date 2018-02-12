@@ -55,8 +55,8 @@ class AnnotatedDataset:
             shape = original_frames.shape
 
             for t in range(shape[0] - (patch_size[0] - 1)):
-                for x in range(0, shape[1], patch_size[1] - stride):
-                    for y in range(0, shape[2], patch_size[2] - stride):
+                for x in range(0, shape[1] - stride, patch_size[1] - stride):
+                    for y in range(0, shape[2] - stride, patch_size[2] - stride):
                         self.length += 8
 
         logging.info('Allocating memory...')
@@ -88,8 +88,8 @@ class AnnotatedDataset:
             shape = original_frames.shape
 
             for t in range(shape[0] - (patch_size[0] - 1)):
-                for x in range(0, shape[1], patch_size[1] - stride):
-                    for y in range(0, shape[2], patch_size[2] - stride):
+                for x in range(0, shape[1] - stride, patch_size[1] - stride):
+                    for y in range(0, shape[2] - stride, patch_size[2] - stride):
                         original_patch = original_frames[t:(t + patch_size[0]),
                                                          x:(x + patch_size[1]),
                                                          y:(y + patch_size[2])]

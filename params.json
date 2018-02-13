@@ -8,5 +8,6 @@
   "patch_size": [3, 40, 40, 3],
   "stride": 20,
   "learning_rate": 0.00001,
-  "train_partitions": ["Antarctica", "Zakrzowek"]
+  "train_partitions": ["Antarctica", "Zakrzowek"],
+  "annotation_type": "mask"
 }

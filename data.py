@@ -13,11 +13,14 @@ ARCHIVE_PATH = DATA_PATH / 'AGH_MSD.zip'
 
 
 class AnnotatedDataset:
-    def __init__(self, partitions, batch_size=64, patch_size=(5, 40, 40, 3), stride=20):
+    def __init__(self, partitions, batch_size=64, patch_size=(5, 40, 40, 3), stride=20, annotation_type='mask'):
+        assert annotation_type in ['mask', 'filtered']
+
         self.partitions = partitions
         self.batch_size = batch_size
         self.patch_size = patch_size
         self.stride = stride
+        self.annotation_type = annotation_type
         self.length = 0
         self.current_batch_index = 0
         self.inputs = None
@@ -76,7 +79,13 @@ class AnnotatedDataset:
                 raise ValueError('Unrecognized partition "%s".' % partition_name)
 
             original_path = partition_path / 'Oryginal'
-            ground_truth_path = partition_path / 'RealGroundTruth'
+
+            if self.annotation_type == 'mask':
+                ground_truth_path = partition_path / 'BlackGroundTruth'
+            elif self.annotation_type == 'filtered':
+                ground_truth_path = partition_path / 'Filtered'
+            else:
+                raise NotImplementedError
 
             frame_ids = [int(path.stem.replace('frame', '')) for path in original_path.glob('*.jpg')]
             frame_ids.sort()
@@ -85,6 +94,12 @@ class AnnotatedDataset:
                                         for i in frame_ids])
             ground_truth_frames = np.array([imageio.imread(str(ground_truth_path / ('frame%d.jpg' % i))) / 255
                                             for i in frame_ids])
+
+            if self.annotation_type == 'mask':
+                for i in range(len(ground_truth_frames)):
+                    ground_truth_frames[i, ground_truth_frames[i] < 0.5] = 0.0
+                    ground_truth_frames[i, ground_truth_frames[i] >= 0.5] = 1.0
+                    ground_truth_frames[i] = np.concatenate([np.max(ground_truth_frames[i])] * 3, axis=2)
 
             shape = original_frames.shape
 

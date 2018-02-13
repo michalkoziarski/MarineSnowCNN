@@ -66,7 +66,7 @@ class AnnotatedDataset:
 
         self.inputs = np.empty([self.length] + list(self.patch_size), dtype=np.float32)
         self.outputs = np.empty([self.length] + list(self.patch_size[1:]), dtype=np.float32)
-        self.indices = np.ndarray(range(self.length))
+        self.indices = list(range(self.length))
 
         current_patch_index = 0
 

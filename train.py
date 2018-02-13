@@ -33,8 +33,8 @@ loss = base_loss + weight_loss
 tf.summary.scalar('base_loss', base_loss)
 tf.summary.scalar('weight_loss', weight_loss)
 tf.summary.scalar('total_loss', loss)
-tf.summary.image('inputs', inputs)
 tf.summary.image('ground_truth', ground_truth)
+tf.summary.image('inputs', inputs[:, params['patch_size'][0] // 2])
 tf.summary.image('outputs', network.outputs[:, params['patch_size'][0] // 2])
 tf.summary.image('residual', network.residual[:, params['patch_size'][0] // 2])
 

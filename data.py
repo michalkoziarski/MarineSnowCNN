@@ -99,7 +99,7 @@ class AnnotatedDataset:
                 for i in range(len(ground_truth_frames)):
                     ground_truth_frames[i, ground_truth_frames[i] < 0.5] = 0.0
                     ground_truth_frames[i, ground_truth_frames[i] >= 0.5] = 1.0
-                    ground_truth_frames[i] = np.concatenate([np.max(ground_truth_frames[i])] * 3, axis=2)
+                    ground_truth_frames[i] = np.concatenate([np.max(ground_truth_frames[i], axis=2)] * 3)
 
             shape = original_frames.shape
 

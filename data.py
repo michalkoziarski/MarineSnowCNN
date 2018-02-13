@@ -63,6 +63,7 @@ class AnnotatedDataset:
 
         self.inputs = np.empty([self.length] + list(self.patch_size), dtype=np.float32)
         self.outputs = np.empty([self.length] + list(self.patch_size[1:]), dtype=np.float32)
+        self.indices = np.ndarray(range(self.length))
 
         current_patch_index = 0
 
@@ -118,8 +119,10 @@ class AnnotatedDataset:
                                 current_patch_index += 1
 
     def batch(self):
-        inputs = self.inputs[self.current_batch_index:(self.current_batch_index + self.batch_size)]
-        outputs = self.outputs[self.current_batch_index:(self.current_batch_index + self.batch_size)]
+        batch_indices = self.indices[self.current_batch_index:(self.current_batch_index + self.batch_size)]
+
+        inputs = self.inputs[batch_indices]
+        outputs = self.outputs[batch_indices]
 
         self.current_batch_index += self.batch_size
 
@@ -129,8 +132,4 @@ class AnnotatedDataset:
         return inputs, outputs
 
     def shuffle(self):
-        indices = list(range(self.length))
-        np.random.shuffle(indices)
-
-        self.inputs = self.inputs[indices]
-        self.outputs = self.outputs[indices]
+        np.random.shuffle(self.indices)

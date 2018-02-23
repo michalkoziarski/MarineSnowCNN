@@ -1,6 +1,8 @@
+import argparse
 import model
 import utils
 import json
+import imageio
 import numpy as np
 import tensorflow as tf
 
@@ -62,3 +64,31 @@ def predict(inputs, session=None, network=None, targets=None):
         return predictions, psnr
     else:
         return predictions
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-input', required=True,
+                        help='a directory of input frames that will be used in alphabetical order')
+    parser.add_argument('-output', required=True,
+                        help='a path for the output image')
+
+    args = parser.parse_args()
+
+    if not Path(args.input).exists():
+        raise ValueError('Incorrect input path.')
+
+    assert len(list(Path(args.input).iterdir())) == 3
+
+    images = []
+
+    for path in Path(args.input).iterdir():
+        image = imageio.imread(str(path))
+
+        assert image.dtype == np.uint8
+
+        images.append(np.array(image) / 255)
+
+    prediction = predict(np.array([images]))[0]
+
+    imageio.imwrite(args.output, prediction)

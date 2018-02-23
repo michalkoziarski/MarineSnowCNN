@@ -2,6 +2,7 @@ import argparse
 import model
 import utils
 import json
+import logging
 import imageio
 import numpy as np
 import tensorflow as tf
@@ -67,6 +68,8 @@ def predict(inputs, session=None, network=None, targets=None):
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+
     parser = argparse.ArgumentParser()
     parser.add_argument('-input', required=True,
                         help='a directory of input frames that will be used in alphabetical order')
@@ -83,11 +86,15 @@ if __name__ == '__main__':
     images = []
 
     for path in Path(args.input).iterdir():
+        logging.info('Loading image from path %s...' % path)
+
         image = imageio.imread(str(path))
 
         assert image.dtype == np.uint8
 
         images.append(np.array(image) / 255)
+
+    logging.info('Running prediction...')
 
     prediction = predict(np.array([images]))[0]
 

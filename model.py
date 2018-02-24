@@ -2,7 +2,7 @@ import tensorflow as tf
 
 
 class MarineSnowCNN:
-    def __init__(self, inputs, k=3, n_layers=20, n_3d_layers=19, n_filters=64, n_input_channels=3, n_output_channels=1,
+    def __init__(self, inputs, k=3, n_layers=20, n_3d_layers=20, n_filters=64, n_input_channels=3, n_output_channels=3,
                  use_residual_connection=True, name='MarineSnowCNN'):
         self.inputs = inputs
         self.k = k

@@ -36,7 +36,6 @@ tf.summary.scalar('total_loss', loss)
 tf.summary.image('ground_truth', ground_truth)
 tf.summary.image('inputs', inputs[:, params['patch_size'][0] // 2])
 tf.summary.image('outputs', network.outputs[:, params['patch_size'][0] // 2])
-tf.summary.image('residual', network.residual[:, params['patch_size'][0] // 2])
 
 for i in range(len(network.weights)):
     tf.summary.histogram('weights/layer_%d' % (i + 1), network.weights[i])

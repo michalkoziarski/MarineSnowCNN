@@ -19,8 +19,6 @@ logging.info('Loading training dataset...')
 train_set = data.AnnotatedDataset(params['train_partitions'], params['batch_size'], params['patch_size'],
                                   params['stride'], params['annotation_type'])
 
-logging.info('Training dataset loaded.')
-
 inputs = tf.placeholder(tf.float32)
 ground_truth = tf.placeholder(tf.float32)
 global_step = tf.Variable(0, trainable=False, name='global_step')

@@ -64,8 +64,15 @@ class AnnotatedDataset:
 
         logging.info('Allocating memory...')
 
+        if annotation_type == 'mask':
+            n_output_channels = 1
+        elif annotation_type == 'filtered':
+            n_output_channels = 3
+        else:
+            raise NotImplementedError
+
         self.inputs = np.empty([self.length] + list(self.patch_size), dtype=np.float32)
-        self.outputs = np.empty([self.length] + list(self.patch_size[1:]), dtype=np.float32)
+        self.outputs = np.empty([self.length, self.patch_size[1], self.patch_size[2], n_output_channels], dtype=np.float32)
         self.indices = list(range(self.length))
 
         current_patch_index = 0
@@ -99,7 +106,7 @@ class AnnotatedDataset:
                 for i in range(len(ground_truth_frames)):
                     ground_truth_frames[i, ground_truth_frames[i] < 0.5] = 0.0
                     ground_truth_frames[i, ground_truth_frames[i] >= 0.5] = 1.0
-                    ground_truth_frames[i] = np.dstack([np.max(ground_truth_frames[i], axis=2)] * 3)
+                    ground_truth_frames[i] = np.dstack([np.max(ground_truth_frames[i], axis=2)])
 
             shape = original_frames.shape
 

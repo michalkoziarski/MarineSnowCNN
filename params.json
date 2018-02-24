@@ -1,5 +1,6 @@
 {
   "n_layers": 20,
+  "n_3d_layers": 20,
   "kernel_size": 3,
   "n_filters": 64,
   "epochs": 60,
@@ -9,5 +10,6 @@
   "stride": 20,
   "learning_rate": 0.00001,
   "train_partitions": ["Antarctica", "Zakrzowek"],
-  "annotation_type": "mask"
+  "annotation_type": "mask",
+  "use_residual_connection": true
 }

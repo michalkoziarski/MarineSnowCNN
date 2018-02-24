@@ -24,7 +24,17 @@ logging.info('Training dataset loaded.')
 inputs = tf.placeholder(tf.float32)
 ground_truth = tf.placeholder(tf.float32)
 global_step = tf.Variable(0, trainable=False, name='global_step')
-network = model.MarineSnowCNN(inputs, params['kernel_size'], params['n_layers'], params['n_filters'])
+
+if params['annotation_type'] == 'mask':
+    n_output_channels = 1
+elif params['annotation_type'] == 'filtered':
+    n_output_channels = 3
+else:
+    raise NotImplementedError
+
+network = model.MarineSnowCNN(inputs, params['kernel_size'], params['n_layers'], params['n_3d_layers'],
+                              params['n_filters'], n_output_channels=n_output_channels,
+                              use_residual_connection=params['use_residual_connection'])
 
 base_loss = tf.losses.mean_squared_error(network.outputs[:, params['patch_size'][0] // 2], ground_truth)
 weight_loss = params['weight_decay'] * tf.reduce_sum(tf.stack([tf.nn.l2_loss(weight) for weight in network.weights]))

@@ -10,16 +10,16 @@ from pathlib import Path
 
 
 def load_model(session, model_name):
-    with open(Path(__file__).parent / model_name / 'params.json') as f:
+    model_path = Path(__file__).parent / 'models' / model_name
+
+    with open(model_path / 'params.json') as f:
         params = json.load(f)
 
-    checkpoint_path = Path(__file__).parent / 'models' / model_name
-
-    assert checkpoint_path.exists()
+    assert model_path.exists()
 
     inputs = tf.placeholder(tf.float32)
     network = get_network(inputs, params)
-    checkpoint = tf.train.get_checkpoint_state(checkpoint_path)
+    checkpoint = tf.train.get_checkpoint_state(model_path)
     saver = tf.train.Saver()
     saver.restore(session, checkpoint.model_checkpoint_path)
 

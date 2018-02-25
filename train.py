@@ -32,11 +32,11 @@ elif params['annotation_type'] == 'filtered':
 else:
     raise NotImplementedError
 
-network = model.MarineSnowCNN(inputs, params['kernel_size'], params['n_layers'], params['n_3d_layers'],
+network = model.MarineSnowCNN(inputs, params['kernel_size'], params['n_3d_layers'], params['n_2d_layers'],
                               params['n_filters'], n_output_channels=n_output_channels,
                               use_residual_connection=use_residual_connection)
 
-base_loss = tf.losses.mean_squared_error(network.outputs[:, params['patch_size'][0] // 2], ground_truth)
+base_loss = tf.losses.mean_squared_error(network.outputs, ground_truth)
 weight_loss = params['weight_decay'] * tf.reduce_sum(tf.stack([tf.nn.l2_loss(weight) for weight in network.weights]))
 loss = base_loss + weight_loss
 
@@ -45,7 +45,7 @@ tf.summary.scalar('weight_loss', weight_loss)
 tf.summary.scalar('total_loss', loss)
 tf.summary.image('ground_truth', ground_truth)
 tf.summary.image('inputs', inputs[:, params['patch_size'][0] // 2])
-tf.summary.image('outputs', network.outputs[:, params['patch_size'][0] // 2])
+tf.summary.image('outputs', network.outputs)
 
 for i in range(len(network.weights)):
     tf.summary.histogram('weights/layer_%d' % (i + 1), network.weights[i])

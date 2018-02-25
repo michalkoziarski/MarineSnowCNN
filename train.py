@@ -25,6 +25,30 @@ for k, v in default_params.items():
 
 params = vars(parser.parse_args())
 
+checkpoint_path = MODELS_PATH / params['model_name']
+log_path = LOGS_PATH / params['model_name']
+model_path = checkpoint_path / 'model.ckpt'
+params_path = checkpoint_path / 'params.json'
+
+for path in [checkpoint_path, log_path]:
+    path.mkdir(parents=True, exist_ok=True)
+
+if params_path.exists():
+    logging.info('Loading model parameters from %s...' % params_path)
+
+    with open(params_path) as f:
+        saved_params = json.load(f)
+
+    if params != saved_params:
+        logging.warning('Parameters at %s different than default. Overwriting default values.' % params_path)
+
+        params_path = saved_params
+else:
+    logging.info('Saving model parameters to %s...' % params_path)
+
+    with open(params_path, 'w') as f:
+        json.dump(params, f)
+
 logging.info('Loading training dataset...')
 
 train_set = data.AnnotatedDataset(params['train_partitions'], params['batch_size'], params['patch_size'],
@@ -55,14 +79,7 @@ saver = tf.train.Saver(max_to_keep=None)
 optimizer = tf.train.AdamOptimizer(params['learning_rate'])
 train_step = optimizer.minimize(loss, global_step=global_step)
 
-checkpoint_path = MODELS_PATH / params['model_name']
-model_path = checkpoint_path / 'model.ckpt'
-log_path = LOGS_PATH / params['model_name']
-
 summary_writer = tf.summary.FileWriter(str(log_path))
-
-for path in [checkpoint_path, log_path]:
-    path.mkdir(parents=True, exist_ok=True)
 
 with tf.Session() as session:
     checkpoint = tf.train.get_checkpoint_state(str(checkpoint_path))

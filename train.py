@@ -1,3 +1,4 @@
+import argparse
 import data
 import json
 import logging
@@ -9,10 +10,20 @@ from tqdm import tqdm
 from pathlib import Path
 
 
+MODELS_PATH = Path(__file__).parent / 'models'
+LOGS_PATH = Path(__file__).parent / 'logs'
+
 logging.basicConfig(level=logging.INFO)
 
 with open(Path(__file__).parent / 'params.json') as f:
-    params = json.load(f)
+    default_params = json.load(f)
+
+parser = argparse.ArgumentParser()
+
+for k, v in default_params.items():
+    parser.add_argument('-%s' % k, type=type(v), default=v)
+
+params = vars(parser.parse_args())
 
 logging.info('Loading training dataset...')
 
@@ -44,15 +55,14 @@ saver = tf.train.Saver(max_to_keep=None)
 optimizer = tf.train.AdamOptimizer(params['learning_rate'])
 train_step = optimizer.minimize(loss, global_step=global_step)
 
-checkpoint_path = Path(__file__).parent / 'model'
+checkpoint_path = MODELS_PATH / params['model_name']
 model_path = checkpoint_path / 'model.ckpt'
-log_path = Path(__file__).parent / 'log'
+log_path = LOGS_PATH / params['model_name']
 
 summary_writer = tf.summary.FileWriter(str(log_path))
 
 for path in [checkpoint_path, log_path]:
-    if not path.exists():
-        path.mkdir()
+    path.mkdir(parents=True, exist_ok=True)
 
 with tf.Session() as session:
     checkpoint = tf.train.get_checkpoint_state(str(checkpoint_path))

@@ -1,4 +1,5 @@
 {
+  "model_name": "MarineSnowCNN",
   "n_3d_layers": 20,
   "n_2d_layers": 0,
   "kernel_size": 3,

@@ -40,7 +40,7 @@ if params_path.exists():
         saved_params = json.load(f)
 
     if params != saved_params:
-        logging.warning('Parameters at %s different than default. Overwriting default values.' % params_path)
+        logging.warning('Detected differences in parameters loaded from %s. Using loaded parameters.' % params_path)
 
         params_path = saved_params
 else:

@@ -1,5 +1,4 @@
 import argparse
-import utils
 import json
 import logging
 import imageio
@@ -10,11 +9,11 @@ from utils import get_network
 from pathlib import Path
 
 
-def load_model(session):
-    with open(Path(__file__).parent / 'params.json') as f:
+def load_model(session, model_name):
+    with open(Path(__file__).parent / model_name / 'params.json') as f:
         params = json.load(f)
 
-    checkpoint_path = Path(__file__).parent / 'model'
+    checkpoint_path = Path(__file__).parent / 'models' / model_name
 
     assert checkpoint_path.exists()
 
@@ -27,7 +26,7 @@ def load_model(session):
     return network
 
 
-def predict(inputs, session=None, network=None, targets=None):
+def predict(inputs, session=None, network=None, model_name=None):
     assert len(inputs.shape) == 5
 
     session_passed = session is not None
@@ -36,12 +35,9 @@ def predict(inputs, session=None, network=None, targets=None):
         session = tf.Session()
 
     if network is None:
-        network = load_model(session)
+        network = load_model(session, model_name)
 
     predictions = []
-
-    if targets is not None:
-        psnr = []
 
     for i in range(len(inputs)):
         frames = inputs[i].copy()
@@ -49,18 +45,12 @@ def predict(inputs, session=None, network=None, targets=None):
         prediction = network.outputs.eval(feed_dict={network.inputs: np.array([frames])},
                                           session=session)[0]
 
-        if targets is not None:
-            psnr.append(utils.psnr(prediction, targets[i], maximum=1.0))
-
         predictions.append(prediction)
 
     if not session_passed:
         session.close()
 
-    if targets is not None:
-        return predictions, psnr
-    else:
-        return predictions
+    return predictions
 
 
 if __name__ == '__main__':
@@ -71,6 +61,8 @@ if __name__ == '__main__':
                         help='a directory of input frames that will be used in alphabetical order')
     parser.add_argument('-output', required=True,
                         help='a path for the output image')
+    parser.add_argument('-model_name', required=True, default='MarineSnowCNN',
+                        help='a name of a trained model')
 
     args = parser.parse_args()
 
@@ -92,6 +84,6 @@ if __name__ == '__main__':
 
     logging.info('Running prediction...')
 
-    prediction = predict(np.array([images]))[0]
+    prediction = predict(np.array([images]), model_name=args.model_name)[0]
 
     imageio.imwrite(args.output, prediction)

@@ -18,9 +18,19 @@ def load_model(session):
 
     assert checkpoint_path.exists()
 
+    if params['annotation_type'] == 'mask':
+        n_output_channels = 1
+        use_residual_connection = False
+    elif params['annotation_type'] == 'filtered':
+        n_output_channels = 3
+        use_residual_connection = True
+    else:
+        raise NotImplementedError
+
     inputs = tf.placeholder(tf.float32)
-    network = model.MarineSnowCNN(inputs, params['kernel_size'], params['n_layers'],
-                                  params['n_filters'], params['patch_size'][3])
+    network = model.MarineSnowCNN(inputs, params['kernel_size'], params['n_3d_layers'], params['n_2d_layers'],
+                                  params['n_filters'], n_output_channels=n_output_channels,
+                                  use_residual_connection=use_residual_connection)
     checkpoint = tf.train.get_checkpoint_state(checkpoint_path)
     saver = tf.train.Saver()
     saver.restore(session, checkpoint.model_checkpoint_path)
@@ -29,9 +39,6 @@ def load_model(session):
 
 
 def predict(inputs, session=None, network=None, targets=None):
-    with open(Path(__file__).parent / 'params.json') as f:
-        params = json.load(f)
-
     assert len(inputs.shape) == 5
 
     session_passed = session is not None
@@ -51,7 +58,7 @@ def predict(inputs, session=None, network=None, targets=None):
         frames = inputs[i].copy()
 
         prediction = network.outputs.eval(feed_dict={network.inputs: np.array([frames])},
-                                          session=session)[0, params['patch_size'][0] // 2]
+                                          session=session)[0]
 
         if targets is not None:
             psnr.append(utils.psnr(prediction, targets[i], maximum=1.0))

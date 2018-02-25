@@ -1,5 +1,4 @@
 import argparse
-import model
 import utils
 import json
 import logging
@@ -7,6 +6,7 @@ import imageio
 import numpy as np
 import tensorflow as tf
 
+from utils import get_network
 from pathlib import Path
 
 
@@ -18,19 +18,8 @@ def load_model(session):
 
     assert checkpoint_path.exists()
 
-    if params['annotation_type'] == 'mask':
-        n_output_channels = 1
-        use_residual_connection = False
-    elif params['annotation_type'] == 'filtered':
-        n_output_channels = 3
-        use_residual_connection = True
-    else:
-        raise NotImplementedError
-
     inputs = tf.placeholder(tf.float32)
-    network = model.MarineSnowCNN(inputs, params['kernel_size'], params['n_3d_layers'], params['n_2d_layers'],
-                                  params['n_filters'], n_output_channels=n_output_channels,
-                                  use_residual_connection=use_residual_connection)
+    network = get_network(inputs, params)
     checkpoint = tf.train.get_checkpoint_state(checkpoint_path)
     saver = tf.train.Saver()
     saver.restore(session, checkpoint.model_checkpoint_path)

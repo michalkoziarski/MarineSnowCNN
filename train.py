@@ -1,10 +1,10 @@
 import data
-import model
 import json
 import logging
 import numpy as np
 import tensorflow as tf
 
+from utils import get_network
 from tqdm import tqdm
 from pathlib import Path
 
@@ -22,20 +22,7 @@ train_set = data.AnnotatedDataset(params['train_partitions'], params['batch_size
 inputs = tf.placeholder(tf.float32)
 ground_truth = tf.placeholder(tf.float32)
 global_step = tf.Variable(0, trainable=False, name='global_step')
-
-if params['annotation_type'] == 'mask':
-    n_output_channels = 1
-    use_residual_connection = False
-elif params['annotation_type'] == 'filtered':
-    n_output_channels = 3
-    use_residual_connection = True
-else:
-    raise NotImplementedError
-
-network = model.MarineSnowCNN(inputs, params['kernel_size'], params['n_3d_layers'], params['n_2d_layers'],
-                              params['n_filters'], n_output_channels=n_output_channels,
-                              use_residual_connection=use_residual_connection)
-
+network = get_network(inputs, params)
 base_loss = tf.losses.mean_squared_error(network.outputs, ground_truth)
 weight_loss = params['weight_decay'] * tf.reduce_sum(tf.stack([tf.nn.l2_loss(weight) for weight in network.weights]))
 loss = base_loss + weight_loss

@@ -103,10 +103,16 @@ class AnnotatedDataset:
                                             for i in frame_ids])
 
             if self.annotation_type == 'mask':
+                truncated_ground_truth_frames = np.empty(ground_truth_frames.shape[:-1] + (1, ),
+                                                         dtype=ground_truth_frames.dtype)
+
                 for i in range(len(ground_truth_frames)):
                     ground_truth_frames[i, ground_truth_frames[i] < 0.5] = 0.0
                     ground_truth_frames[i, ground_truth_frames[i] >= 0.5] = 1.0
-                    ground_truth_frames[i] = np.dstack([np.max(ground_truth_frames[i], axis=2)])
+
+                    truncated_ground_truth_frames[i] = np.dstack([np.max(ground_truth_frames[i], axis=2)])
+
+                ground_truth_frames = truncated_ground_truth_frames
 
             shape = original_frames.shape
 

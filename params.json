@@ -10,6 +10,5 @@
   "stride": 20,
   "learning_rate": 0.00001,
   "train_partitions": ["Antarctica", "Zakrzowek"],
-  "annotation_type": "mask",
-  "use_residual_connection": true
+  "annotation_type": "mask"
 }

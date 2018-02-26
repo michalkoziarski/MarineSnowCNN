@@ -47,7 +47,7 @@ class AnnotatedDataset:
             if not partition_path.exists():
                 raise ValueError('Unrecognized partition "%s".' % partition_name)
 
-            original_path = partition_path / 'Oryginal'
+            original_path = partition_path / 'Original'
 
             frame_ids = [int(path.stem.replace('frame', '')) for path in original_path.glob('*.jpg')]
             frame_ids.sort()
@@ -85,7 +85,7 @@ class AnnotatedDataset:
             if not partition_path.exists():
                 raise ValueError('Unrecognized partition "%s".' % partition_name)
 
-            original_path = partition_path / 'Oryginal'
+            original_path = partition_path / 'Original'
 
             if self.annotation_type == 'mask':
                 ground_truth_path = partition_path / 'BlackGroundTruth'

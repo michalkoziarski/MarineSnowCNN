@@ -8,7 +8,7 @@ from urllib.request import urlretrieve
 
 
 DATA_PATH = Path(__file__).parent / 'data'
-DATA_URL = 'http://home.agh.edu.pl/~cyganek/AGH_MSD.zip'
+DATA_URL = 'https://www.dropbox.com/s/n6cux3vepkg7824/AGH_MSD.zip'
 ARCHIVE_PATH = DATA_PATH / 'AGH_MSD.zip'
 
 

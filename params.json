@@ -9,7 +9,7 @@
   "batch_size": 64,
   "temporal_patch_size": 3,
   "spatial_patch_size": 40,
-  "stride": 20,
+  "spatial_stride": 20,
   "learning_rate": 0.00001,
   "train_partitions": ["Antarctica", "Zakrzowek"],
   "annotation_type": "mask"

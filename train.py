@@ -66,7 +66,7 @@ tf.summary.scalar('base_loss', base_loss)
 tf.summary.scalar('weight_loss', weight_loss)
 tf.summary.scalar('total_loss', loss)
 tf.summary.image('ground_truth', ground_truth)
-tf.summary.image('inputs', inputs[:, params['patch_size'][0] // 2])
+tf.summary.image('inputs', inputs[:, params['temporal_patch_size'] // 2])
 tf.summary.image('outputs', network.outputs)
 
 for i in range(len(network.weights)):

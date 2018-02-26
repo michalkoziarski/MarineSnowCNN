@@ -61,7 +61,7 @@ if __name__ == '__main__':
                         help='a directory of input frames that will be used in alphabetical order')
     parser.add_argument('-output', required=True,
                         help='a path for the output image')
-    parser.add_argument('-model_name', required=True, default='MarineSnowCNN',
+    parser.add_argument('-model_name', default='MarineSnowCNN',
                         help='a name of a trained model')
 
     args = parser.parse_args()

@@ -13,13 +13,15 @@ ARCHIVE_PATH = DATA_PATH / 'AGH_MSD.zip'
 
 
 class AnnotatedDataset:
-    def __init__(self, partitions, batch_size=64, patch_size=(5, 40, 40, 3), stride=20, annotation_type='mask'):
+    def __init__(self, partitions, batch_size=64, temporal_patch_size=3, spatial_patch_size=40, spatial_stride=20,
+                 annotation_type='mask'):
         assert annotation_type in ['mask', 'filtered']
 
         self.partitions = partitions
         self.batch_size = batch_size
-        self.patch_size = patch_size
-        self.stride = stride
+        self.temporal_patch_size = temporal_patch_size
+        self.spatial_patch_size = spatial_patch_size
+        self.spatial_stride = spatial_stride
         self.annotation_type = annotation_type
         self.length = 0
         self.current_batch_index = 0
@@ -57,9 +59,9 @@ class AnnotatedDataset:
 
             shape = original_frames.shape
 
-            for t in range(shape[0] - (patch_size[0] - 1)):
-                for x in range(0, shape[1] - stride, patch_size[1] - stride):
-                    for y in range(0, shape[2] - stride, patch_size[2] - stride):
+            for t in range(shape[0] - (temporal_patch_size - 1)):
+                for x in range(0, shape[1] - spatial_stride, spatial_patch_size - spatial_stride):
+                    for y in range(0, shape[2] - spatial_stride, spatial_patch_size - spatial_stride):
                         self.length += 4
 
         logging.info('Allocating memory...')
@@ -71,8 +73,10 @@ class AnnotatedDataset:
         else:
             raise NotImplementedError
 
-        self.inputs = np.empty([self.length] + list(self.patch_size), dtype=np.float32)
-        self.outputs = np.empty([self.length, self.patch_size[1], self.patch_size[2], n_output_channels], dtype=np.float32)
+        self.inputs = np.empty([self.length, temporal_patch_size, spatial_patch_size, spatial_patch_size, 3],
+                               dtype=np.float32)
+        self.outputs = np.empty([self.length, spatial_patch_size, spatial_patch_size, n_output_channels],
+                                dtype=np.float32)
         self.indices = list(range(self.length))
 
         current_patch_index = 0
@@ -116,16 +120,16 @@ class AnnotatedDataset:
 
             shape = original_frames.shape
 
-            for t in range(shape[0] - (patch_size[0] - 1)):
-                for x in range(0, shape[1] - stride, patch_size[1] - stride):
-                    for y in range(0, shape[2] - stride, patch_size[2] - stride):
-                        original_patch = original_frames[t:(t + patch_size[0]),
-                                                         x:(x + patch_size[1]),
-                                                         y:(y + patch_size[2])]
+            for t in range(shape[0] - (temporal_patch_size - 1)):
+                for x in range(0, shape[1] - spatial_stride, spatial_patch_size - spatial_stride):
+                    for y in range(0, shape[2] - spatial_stride, spatial_patch_size - spatial_stride):
+                        original_patch = original_frames[t:(t + temporal_patch_size),
+                                                         x:(x + spatial_patch_size),
+                                                         y:(y + spatial_patch_size)]
 
-                        ground_truth_patch = ground_truth_frames[t + patch_size[0] // 2,
-                                                                 x:(x + patch_size[1]),
-                                                                 y:(y + patch_size[2])]
+                        ground_truth_patch = ground_truth_frames[t + temporal_patch_size // 2,
+                                                                 x:(x + spatial_patch_size),
+                                                                 y:(y + spatial_patch_size)]
 
                         for n_rotations in range(2):
                             for flip_xy in [False, True]:

@@ -89,8 +89,6 @@ tf.summary.scalar('accuracy', accuracy)
 tf.summary.scalar('precision', precision)
 tf.summary.scalar('recall', recall)
 tf.summary.scalar('f1_score', f1_score)
-tf.summary.image('inputs', inputs[:, params['temporal_patch_size'] // 2])
-tf.summary.image('outputs', network.outputs)
 
 for i in range(len(network.weights)):
     tf.summary.histogram('weights/layer_%d' % (i + 1), network.weights[i])

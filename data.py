@@ -162,39 +162,23 @@ class ImageDataset:
     def __init__(self, partitions, temporal_width):
         self.partitions = partitions
         self.temporal_width = temporal_width
+        self.inputs = []
+        self.outputs = []
         self.length = 0
         self.current_fetch_index = 0
 
         _download_if_necessary()
 
-        logging.info('Calculating necessary memory...')
-
-        for partition_name in partitions:
-            original_frames, ground_truth_frames = _load_frames(partition_name, temporal_width)
-
-            logging.info('Found %d original and %d ground truth frames for partition "%s".' % (len(original_frames),
-                                                                                               len(ground_truth_frames),
-                                                                                               partition_name))
-
-            self.length += len(ground_truth_frames)
-
-        logging.info('Allocating memory...')
-
-        self.inputs = np.empty([self.length, temporal_width, 1080, 1920, 3], dtype=np.float32)
-        self.outputs = np.empty([self.length, 1080, 1920, 1], dtype=np.float32)
-
         logging.info('Loading frames...')
-
-        current_frame_index = 0
 
         for partition_name in partitions:
             original_frames, ground_truth_frames = _load_frames(partition_name, temporal_width)
 
             for i in range(len(ground_truth_frames)):
-                self.inputs[current_frame_index] = original_frames[i:(i + temporal_width)]
-                self.outputs[current_frame_index] = ground_truth_frames[i]
+                self.inputs[self.length] = original_frames[i:(i + temporal_width)]
+                self.outputs[self.length] = ground_truth_frames[i]
 
-                current_frame_index += 1
+                self.length += 1
 
     def fetch(self):
         fetch_input = self.inputs[self.current_fetch_index]

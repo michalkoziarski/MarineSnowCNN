@@ -87,9 +87,9 @@ class PatchDataset:
                                                                                                len(ground_truth_frames),
                                                                                                partition_name))
 
-            shape = original_frames.shape
+            shape = ground_truth_frames.shape
 
-            for t in range(shape[0] - (temporal_patch_size - 1)):
+            for t in range(shape[0]):
                 for x in range(0, shape[1] - spatial_stride, spatial_patch_size - spatial_stride):
                     for y in range(0, shape[2] - spatial_stride, spatial_patch_size - spatial_stride):
                         self.length += 4

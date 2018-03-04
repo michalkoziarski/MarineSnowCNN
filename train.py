@@ -135,6 +135,6 @@ with tf.Session() as session:
                 _, summary = session.run([train_step, summary_step], feed_dict=feed_dict)
 
                 saver.save(session, str(model_path), global_step=(epoch + 1))
-                summary_writer.add_summary(summary, epoch)
+                summary_writer.add_summary(summary, epoch + 1)
 
     logging.info('Training complete.')

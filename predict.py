@@ -27,7 +27,7 @@ def load_model(session, model_name):
     return network
 
 
-def predict(inputs, session=None, network=None, model_name=None):
+def predict(inputs, threshold=0.5, session=None, network=None, model_name=None):
     assert len(inputs.shape) == 5
 
     session_passed = session is not None
@@ -45,6 +45,10 @@ def predict(inputs, session=None, network=None, model_name=None):
 
         prediction = network.outputs.eval(feed_dict={network.inputs: np.array([frames])},
                                           session=session)[0]
+
+        if threshold is not None:
+            prediction[prediction < threshold] = 0.0
+            prediction[prediction >= threshold] = 1.0
 
         predictions.append(prediction)
 

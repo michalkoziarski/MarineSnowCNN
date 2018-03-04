@@ -172,6 +172,10 @@ class ImageDataset:
         for partition_name in partitions:
             original_frames, ground_truth_frames = _load_frames(partition_name, temporal_width)
 
+            logging.info('Found %d original and %d ground truth frames for partition "%s".' % (len(original_frames),
+                                                                                               len(ground_truth_frames),
+                                                                                               partition_name))
+
             for i in range(len(ground_truth_frames)):
                 self.inputs.append(original_frames[i:(i + temporal_width)])
                 self.outputs.append(ground_truth_frames[i])

@@ -27,7 +27,7 @@ def load_model(session, model_name):
     return network
 
 
-def predict(inputs, threshold=0.5, session=None, network=None, model_name=None):
+def predict_inputs(inputs, threshold=0.5, session=None, network=None, model_name=None):
     assert len(inputs.shape) == 5
 
     session_passed = session is not None
@@ -56,6 +56,23 @@ def predict(inputs, threshold=0.5, session=None, network=None, model_name=None):
         session.close()
 
     return predictions
+
+
+def predict_dataset(dataset, session, network, threshold=0.5):
+    predictions = []
+
+    for i in range(dataset.length):
+        inputs, _ = dataset.fetch()
+
+        prediction = network.outputs.eval(feed_dict={network.inputs: inputs}, session=session)[0]
+
+        if threshold is not None:
+            prediction[prediction < threshold] = 0.0
+            prediction[prediction >= threshold] = 1.0
+
+        predictions.append(prediction)
+
+    return np.array(predictions)
 
 
 if __name__ == '__main__':
@@ -89,6 +106,6 @@ if __name__ == '__main__':
 
     logging.info('Running prediction...')
 
-    prediction = predict(np.array([images]), model_name=args.model_name)[0]
+    prediction = predict_inputs(np.array([images]), model_name=args.model_name)[0]
 
     imageio.imwrite(args.output, prediction)

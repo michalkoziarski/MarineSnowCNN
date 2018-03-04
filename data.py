@@ -25,7 +25,7 @@ class AnnotatedDataset:
         self.outputs = None
 
         if not DATA_PATH.exists():
-            DATA_PATH.mkdir()
+            DATA_PATH.mkdir(exist_ok=True)
 
         if not ARCHIVE_PATH.exists():
             logging.info('Downloading data archive...')

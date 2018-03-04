@@ -12,6 +12,29 @@ DATA_URL = 'https://www.dropbox.com/s/nlowvsi0nnd4xrh/AGH_MSD_v2.zip?dl=0'
 ARCHIVE_PATH = DATA_PATH / 'AGH_MSD_v2.zip'
 
 
+def _load_frames(partition_name, temporal_width):
+    partition_path = DATA_PATH / partition_name
+    original_path = partition_path / 'Original'
+    ground_truth_path = partition_path / 'GroundTruth'
+
+    if not partition_path.exists():
+        raise ValueError('Unrecognized partition "%s".' % partition_name)
+
+    ground_truth_frame_ids = [int(path.stem.replace('frame', '')) for path in original_path.glob('*.jpg')]
+    ground_truth_frame_ids.sort()
+
+    left_extension = list(range(ground_truth_frame_ids[0] - temporal_width // 2, ground_truth_frame_ids[0]))
+    right_extension = list(range(ground_truth_frame_ids[-1] + 1, ground_truth_frame_ids[-1] + 1 + temporal_width // 2))
+    original_frame_ids = left_extension + ground_truth_frame_ids + right_extension
+
+    original_frames = np.array([imageio.imread(str(original_path / ('frame%d.jpg' % i))) / 255
+                                for i in original_frame_ids])
+    ground_truth_frames = np.array([imageio.imread(str(ground_truth_path / ('frame%d.jpg' % i))) / 255
+                                    for i in ground_truth_frame_ids])
+
+    return original_frames, ground_truth_frames
+
+
 class AnnotatedDataset:
     def __init__(self, partitions, batch_size=64, temporal_patch_size=3, spatial_patch_size=40, spatial_stride=20):
         self.partitions = partitions
@@ -40,20 +63,9 @@ class AnnotatedDataset:
         logging.info('Calculating necessary memory...')
 
         for partition_name in partitions:
-            partition_path = DATA_PATH / partition_name
+            _, ground_truth_frames = _load_frames(partition_name, temporal_patch_size)
 
-            if not partition_path.exists():
-                raise ValueError('Unrecognized partition "%s".' % partition_name)
-
-            original_path = partition_path / 'Original'
-
-            frame_ids = [int(path.stem.replace('frame', '')) for path in original_path.glob('*.jpg')]
-            frame_ids.sort()
-
-            original_frames = np.array([imageio.imread(str(original_path / ('frame%d.jpg' % i))) / 255
-                                        for i in frame_ids])
-
-            shape = original_frames.shape
+            shape = ground_truth_frames.shape
 
             for t in range(shape[0] - (temporal_patch_size - 1)):
                 for x in range(0, shape[1] - spatial_stride, spatial_patch_size - spatial_stride):
@@ -71,23 +83,7 @@ class AnnotatedDataset:
         current_patch_index = 0
 
         for partition_name in partitions:
-            logging.info('Loading "%s" partition...' % partition_name)
-
-            partition_path = DATA_PATH / partition_name
-
-            if not partition_path.exists():
-                raise ValueError('Unrecognized partition "%s".' % partition_name)
-
-            original_path = partition_path / 'Original'
-            ground_truth_path = partition_path / 'GroundTruth'
-
-            frame_ids = [int(path.stem.replace('frame', '')) for path in original_path.glob('*.jpg')]
-            frame_ids.sort()
-
-            original_frames = np.array([imageio.imread(str(original_path / ('frame%d.jpg' % i))) / 255
-                                        for i in frame_ids])
-            ground_truth_frames = np.array([imageio.imread(str(ground_truth_path / ('frame%d.jpg' % i))) / 255
-                                            for i in frame_ids])
+            original_frames, ground_truth_frames = _load_frames(partition_name, temporal_patch_size)
 
             truncated_ground_truth_frames = np.empty(ground_truth_frames.shape[:-1] + (1, ),
                                                      dtype=ground_truth_frames.dtype)

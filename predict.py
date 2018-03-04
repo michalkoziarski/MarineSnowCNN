@@ -79,6 +79,11 @@ def predict_dataset(dataset, session, network, threshold=0.5):
         metrics['FN'] += np.sum((prediction == 0.0) & (ground_truth == 1.0))
         metrics['FP'] += np.sum((prediction == 1.0) & (ground_truth == 0.0))
 
+    metrics['accuracy'] = (metrics['TP'] + metrics['TN']) / (metrics['TP'] + metrics['TN'] + metrics['FP'] + metrics['FN'])
+    metrics['precision'] = metrics['TP'] / (metrics['TP'] + metrics['FP'])
+    metrics['recall'] = metrics['TP'] / (metrics['TP'] + metrics['FN'])
+    metrics['f1_score'] = 2 * metrics['precision'] * metrics['recall'] / (metrics['precision'] + metrics['recall'])
+
     return np.array(predictions), metrics
 
 

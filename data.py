@@ -12,6 +12,18 @@ DATA_URL = 'https://www.dropbox.com/s/nlowvsi0nnd4xrh/AGH_MSD_v2.zip?dl=0'
 ARCHIVE_PATH = DATA_PATH / 'AGH_MSD_v2.zip'
 
 
+def _truncate_frames(frames):
+    truncated_frames = np.empty(frames.shape[:-1] + (1,), dtype=frames.dtype)
+
+    for i in range(len(frames)):
+        frames[i, frames[i] < 0.5] = 0.0
+        frames[i, frames[i] >= 0.5] = 1.0
+
+        truncated_frames[i] = np.dstack([np.max(frames[i], axis=2)])
+
+    return truncated_frames
+
+
 def _load_frames(partition_name, temporal_width):
     partition_path = DATA_PATH / partition_name
     original_path = partition_path / 'Original'
@@ -32,7 +44,24 @@ def _load_frames(partition_name, temporal_width):
     ground_truth_frames = np.array([imageio.imread(str(ground_truth_path / ('frame%d.jpg' % i))) / 255
                                     for i in ground_truth_frame_ids])
 
+    ground_truth_frames = _truncate_frames(ground_truth_frames)
+
     return original_frames, ground_truth_frames
+
+
+def _download_if_necessary():
+    if not DATA_PATH.exists():
+        DATA_PATH.mkdir(exist_ok=True)
+
+    if not ARCHIVE_PATH.exists():
+        logging.info('Downloading data archive...')
+
+        urlretrieve(DATA_URL, ARCHIVE_PATH)
+
+        with zipfile.ZipFile(str(ARCHIVE_PATH)) as f:
+            logging.info('Extracting data archive...')
+
+            f.extractall(DATA_PATH)
 
 
 class PatchDataset:
@@ -47,18 +76,7 @@ class PatchDataset:
         self.inputs = None
         self.outputs = None
 
-        if not DATA_PATH.exists():
-            DATA_PATH.mkdir(exist_ok=True)
-
-        if not ARCHIVE_PATH.exists():
-            logging.info('Downloading data archive...')
-
-            urlretrieve(DATA_URL, ARCHIVE_PATH)
-
-            with zipfile.ZipFile(str(ARCHIVE_PATH)) as f:
-                logging.info('Extracting data archive...')
-
-                f.extractall(DATA_PATH)
+        _download_if_necessary()
 
         logging.info('Calculating necessary memory...')
 
@@ -84,32 +102,23 @@ class PatchDataset:
                                 dtype=np.float32)
         self.indices = list(range(self.length))
 
+        logging.info('Loading patches...')
+
         current_patch_index = 0
 
         for partition_name in partitions:
             original_frames, ground_truth_frames = _load_frames(partition_name, temporal_patch_size)
 
-            truncated_ground_truth_frames = np.empty(ground_truth_frames.shape[:-1] + (1, ),
-                                                     dtype=ground_truth_frames.dtype)
+            shape = ground_truth_frames.shape
 
-            for i in range(len(ground_truth_frames)):
-                ground_truth_frames[i, ground_truth_frames[i] < 0.5] = 0.0
-                ground_truth_frames[i, ground_truth_frames[i] >= 0.5] = 1.0
-
-                truncated_ground_truth_frames[i] = np.dstack([np.max(ground_truth_frames[i], axis=2)])
-
-            ground_truth_frames = truncated_ground_truth_frames
-
-            shape = original_frames.shape
-
-            for t in range(shape[0] - (temporal_patch_size - 1)):
+            for t in range(shape[0]):
                 for x in range(0, shape[1] - spatial_stride, spatial_patch_size - spatial_stride):
                     for y in range(0, shape[2] - spatial_stride, spatial_patch_size - spatial_stride):
                         original_patch = original_frames[t:(t + temporal_patch_size),
                                                          x:(x + spatial_patch_size),
                                                          y:(y + spatial_patch_size)]
 
-                        ground_truth_patch = ground_truth_frames[t + temporal_patch_size // 2,
+                        ground_truth_patch = ground_truth_frames[t,
                                                                  x:(x + spatial_patch_size),
                                                                  y:(y + spatial_patch_size)]
 
@@ -147,3 +156,53 @@ class PatchDataset:
 
     def shuffle(self):
         np.random.shuffle(self.indices)
+
+
+class ImageDataset:
+    def __init__(self, partitions, temporal_width):
+        self.partitions = partitions
+        self.temporal_width = temporal_width
+        self.length = 0
+        self.current_fetch_index = 0
+
+        _download_if_necessary()
+
+        logging.info('Calculating necessary memory...')
+
+        for partition_name in partitions:
+            original_frames, ground_truth_frames = _load_frames(partition_name, temporal_width)
+
+            logging.info('Found %d original and %d ground truth frames for partition "%s".' % (len(original_frames),
+                                                                                               len(ground_truth_frames),
+                                                                                               partition_name))
+
+            self.length += len(ground_truth_frames)
+
+        logging.info('Allocating memory...')
+
+        self.inputs = np.empty([self.length, temporal_width, 1080, 1920, 3], dtype=np.float32)
+        self.outputs = np.empty([self.length, 1080, 1920, 1], dtype=np.float32)
+
+        logging.info('Loading frames...')
+
+        current_frame_index = 0
+
+        for partition_name in partitions:
+            original_frames, ground_truth_frames = _load_frames(partition_name, temporal_width)
+
+            for i in range(len(ground_truth_frames)):
+                self.inputs[current_frame_index] = original_frames[i:(i + temporal_width)]
+                self.outputs[current_frame_index] = ground_truth_frames[i]
+
+                current_frame_index += 1
+
+    def fetch(self):
+        fetch_input = self.inputs[self.current_fetch_index]
+        fetch_output = self.outputs[self.current_fetch_index]
+
+        self.current_fetch_index += 1
+
+        if self.current_fetch_index >= self.length:
+            self.current_fetch_index = 0
+
+        return fetch_input, fetch_output

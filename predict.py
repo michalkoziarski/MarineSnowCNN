@@ -11,8 +11,9 @@ from pathlib import Path
 
 def load_model(session, model_name):
     model_path = Path(__file__).parent / 'models' / model_name
+    params_path = Path(__file__).parent / 'params' / ('%s.json' % model_name)
 
-    with open(model_path / 'params.json') as f:
+    with open(params_path) as f:
         params = json.load(f)
 
     assert model_path.exists()

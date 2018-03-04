@@ -12,25 +12,36 @@ from pathlib import Path
 
 MODELS_PATH = Path(__file__).parent / 'models'
 LOGS_PATH = Path(__file__).parent / 'logs'
+PARAMS_PATH = Path(__file__).parent / 'params'
 
 logging.basicConfig(level=logging.INFO)
 
-with open(Path(__file__).parent / 'params.json') as f:
-    default_params = json.load(f)
-
 parser = argparse.ArgumentParser()
 
-for k, v in default_params.items():
-    parser.add_argument('-%s' % k, type=type(v), default=v)
+parser.add_argument('-model_name', type=str, default='MarineSnowCNN')
+parser.add_argument('-n_3d_layers', type=int, default=20)
+parser.add_argument('-n_2d_layers', type=int, default=0)
+parser.add_argument('-kernel_size', type=int, default=3)
+parser.add_argument('-n_filters', type=int, default=64)
+parser.add_argument('-epochs', type=int, default=60)
+parser.add_argument('-weight_decay', type=float, default=0.0)
+parser.add_argument('-batch_size', type=int, default=64)
+parser.add_argument('-temporal_patch_size', type=int, default=3)
+parser.add_argument('-spatial_patch_size', type=int, default=40)
+parser.add_argument('-spatial_stride', type=int, default=20)
+parser.add_argument('-learning_rate', type=float, default=0.00001)
+parser.add_argument('-train_partitions', type=str, nargs='+', default=['Zakrzowek-A'])
+parser.add_argument('-validation_partitions', type=str, nargs='+', default=['Antarctica'])
+parser.add_argument('-test_partitions', type=str, nargs='+', default=['Zakrzowek-B'])
 
 params = vars(parser.parse_args())
 
 checkpoint_path = MODELS_PATH / params['model_name']
 log_path = LOGS_PATH / params['model_name']
 model_path = checkpoint_path / 'model.ckpt'
-params_path = checkpoint_path / 'params.json'
+params_path = PARAMS_PATH / ('%s.json' % params['model_name'])
 
-for path in [checkpoint_path, log_path]:
+for path in [PARAMS_PATH, checkpoint_path, log_path]:
     path.mkdir(parents=True, exist_ok=True)
 
 if params_path.exists():
@@ -40,9 +51,7 @@ if params_path.exists():
         saved_params = json.load(f)
 
     if params != saved_params:
-        logging.warning('Detected differences in parameters loaded from %s. Using loaded parameters.' % params_path)
-
-        params_path = saved_params
+        raise ValueError('Saved parameters are different than the ones passed to the trainer.')
 else:
     logging.info('Saving model parameters to %s...' % params_path)
 

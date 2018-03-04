@@ -175,8 +175,8 @@ class ImageDataset:
             original_frames, ground_truth_frames = _load_frames(partition_name, temporal_width)
 
             for i in range(len(ground_truth_frames)):
-                self.inputs[self.length] = original_frames[i:(i + temporal_width)]
-                self.outputs[self.length] = ground_truth_frames[i]
+                self.inputs.append(original_frames[i:(i + temporal_width)])
+                self.outputs.append(ground_truth_frames[i])
 
                 self.length += 1
 

@@ -8,8 +8,8 @@ from urllib.request import urlretrieve
 
 
 DATA_PATH = Path(__file__).parent / 'data'
-DATA_URL = 'https://www.dropbox.com/s/n6cux3vepkg7824/AGH_MSD.zip'
-ARCHIVE_PATH = DATA_PATH / 'AGH_MSD.zip'
+DATA_URL = 'https://www.dropbox.com/s/nlowvsi0nnd4xrh/AGH_MSD_v2.zip?dl=0'
+ARCHIVE_PATH = DATA_PATH / 'AGH_MSD_v2.zip'
 
 
 class AnnotatedDataset:

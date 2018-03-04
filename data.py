@@ -32,7 +32,7 @@ def _load_frames(partition_name, temporal_width):
     if not partition_path.exists():
         raise ValueError('Unrecognized partition "%s".' % partition_name)
 
-    ground_truth_frame_ids = [int(path.stem.replace('frame', '')) for path in original_path.glob('*.jpg')]
+    ground_truth_frame_ids = [int(path.stem.replace('frame', '')) for path in ground_truth_path.glob('*.jpg')]
     ground_truth_frame_ids.sort()
 
     left_extension = list(range(ground_truth_frame_ids[0] - temporal_width // 2, ground_truth_frame_ids[0]))

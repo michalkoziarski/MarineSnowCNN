@@ -63,9 +63,13 @@ class AnnotatedDataset:
         logging.info('Calculating necessary memory...')
 
         for partition_name in partitions:
-            _, ground_truth_frames = _load_frames(partition_name, temporal_patch_size)
+            original_frames, ground_truth_frames = _load_frames(partition_name, temporal_patch_size)
 
-            shape = ground_truth_frames.shape
+            logging.info('Found %d original and %d ground truth frames for partition "%s"' % (len(original_frames),
+                                                                                              len(ground_truth_frames),
+                                                                                              partition_name))
+
+            shape = original_frames.shape
 
             for t in range(shape[0] - (temporal_patch_size - 1)):
                 for x in range(0, shape[1] - spatial_stride, spatial_patch_size - spatial_stride):

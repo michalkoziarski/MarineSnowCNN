@@ -61,9 +61,10 @@ def predict_inputs(inputs, threshold=0.5, session=None, network=None, model_name
 
 def predict_dataset(dataset, session, network, threshold=0.5):
     predictions = []
+    metrics = {'TN': 0, 'TP': 0, 'FN': 0, 'FP': 0}
 
     for _ in tqdm(range(dataset.length)):
-        inputs, _ = dataset.fetch()
+        inputs, ground_truth = dataset.fetch()
 
         prediction = network.outputs.eval(feed_dict={network.inputs: inputs}, session=session)[0]
 
@@ -73,7 +74,12 @@ def predict_dataset(dataset, session, network, threshold=0.5):
 
         predictions.append(prediction)
 
-    return np.array(predictions)
+        metrics['TN'] += np.sum((prediction == 0.0) & (ground_truth == 0.0))
+        metrics['TP'] += np.sum((prediction == 1.0) & (ground_truth == 1.0))
+        metrics['FN'] += np.sum((prediction == 0.0) & (ground_truth == 1.0))
+        metrics['FP'] += np.sum((prediction == 1.0) & (ground_truth == 0.0))
+
+    return np.array(predictions), metrics
 
 
 if __name__ == '__main__':

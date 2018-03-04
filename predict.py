@@ -7,6 +7,7 @@ import tensorflow as tf
 
 from utils import get_network
 from pathlib import Path
+from tqdm import tqdm
 
 
 def load_model(session, model_name):
@@ -61,7 +62,7 @@ def predict_inputs(inputs, threshold=0.5, session=None, network=None, model_name
 def predict_dataset(dataset, session, network, threshold=0.5):
     predictions = []
 
-    for i in range(dataset.length):
+    for _ in tqdm(range(dataset.length)):
         inputs, _ = dataset.fetch()
 
         prediction = network.outputs.eval(feed_dict={network.inputs: inputs}, session=session)[0]

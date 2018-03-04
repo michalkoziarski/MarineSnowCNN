@@ -35,7 +35,7 @@ def _load_frames(partition_name, temporal_width):
     return original_frames, ground_truth_frames
 
 
-class AnnotatedDataset:
+class PatchDataset:
     def __init__(self, partitions, batch_size=64, temporal_patch_size=3, spatial_patch_size=40, spatial_stride=20):
         self.partitions = partitions
         self.batch_size = batch_size

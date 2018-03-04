@@ -147,7 +147,7 @@ with tf.Session() as session:
             precision: metrics['precision'],
             recall: metrics['recall'],
             f1_score: metrics['f1_score']
-        })
+        })[0]
 
         saver.save(session, str(model_path), global_step=(epoch + 1))
         summary_writer.add_summary(summary, epoch + 1)

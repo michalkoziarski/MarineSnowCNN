@@ -12,12 +12,13 @@ DATA_URL = 'https://www.dropbox.com/s/nlowvsi0nnd4xrh/AGH_MSD_v2.zip?dl=0'
 ARCHIVE_PATH = DATA_PATH / 'AGH_MSD_v2.zip'
 
 
-def _truncate_frames(frames):
+def _binarize_frames(frames):
     truncated_frames = np.empty(frames.shape + (1,), dtype=frames.dtype)
 
     for i in range(len(frames)):
-        frames[i, frames[i] < 0.5] = 0.0
-        frames[i, frames[i] >= 0.5] = 1.0
+        truncated_frames[i, :, :, 0] = frames[i]
+        truncated_frames[i, truncated_frames[i] < 0.5] = 0.0
+        truncated_frames[i, truncated_frames[i] >= 0.5] = 1.0
 
     return truncated_frames
 
@@ -42,7 +43,7 @@ def _load_frames(partition_name, temporal_width):
     ground_truth_frames = np.array([imageio.imread(str(ground_truth_path / ('frame%d.jpg' % i))) / 255
                                     for i in ground_truth_frame_ids])
 
-    ground_truth_frames = _truncate_frames(ground_truth_frames)
+    ground_truth_frames = _binarize_frames(ground_truth_frames)
 
     return original_frames, ground_truth_frames
 

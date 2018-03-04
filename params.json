@@ -11,6 +11,5 @@
   "spatial_patch_size": 40,
   "spatial_stride": 20,
   "learning_rate": 0.00001,
-  "train_partitions": ["Antarctica", "Zakrzowek"],
-  "annotation_type": "mask"
+  "train_partitions": ["Antarctica", "Zakrzowek"]
 }

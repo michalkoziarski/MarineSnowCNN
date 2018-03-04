@@ -52,7 +52,7 @@ else:
 logging.info('Loading training dataset...')
 
 train_set = data.AnnotatedDataset(params['train_partitions'], params['batch_size'], params['temporal_patch_size'],
-                                  params['spatial_patch_size'], params['spatial_stride'], params['annotation_type'])
+                                  params['spatial_patch_size'], params['spatial_stride'])
 
 inputs = tf.placeholder(tf.float32)
 ground_truth = tf.placeholder(tf.float32)

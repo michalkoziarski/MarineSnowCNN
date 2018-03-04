@@ -65,9 +65,9 @@ class AnnotatedDataset:
         for partition_name in partitions:
             original_frames, ground_truth_frames = _load_frames(partition_name, temporal_patch_size)
 
-            logging.info('Found %d original and %d ground truth frames for partition "%s"' % (len(original_frames),
-                                                                                              len(ground_truth_frames),
-                                                                                              partition_name))
+            logging.info('Found %d original and %d ground truth frames for partition "%s".' % (len(original_frames),
+                                                                                               len(ground_truth_frames),
+                                                                                               partition_name))
 
             shape = original_frames.shape
 

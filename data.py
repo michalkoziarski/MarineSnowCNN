@@ -13,13 +13,11 @@ ARCHIVE_PATH = DATA_PATH / 'AGH_MSD_v2.zip'
 
 
 def _truncate_frames(frames):
-    truncated_frames = np.empty(frames.shape[:-1] + (1,), dtype=frames.dtype)
+    truncated_frames = np.empty(frames.shape + (1,), dtype=frames.dtype)
 
     for i in range(len(frames)):
         frames[i, frames[i] < 0.5] = 0.0
         frames[i, frames[i] >= 0.5] = 1.0
-
-        truncated_frames[i] = np.dstack([np.max(frames[i], axis=2)])
 
     return truncated_frames
 

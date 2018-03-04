@@ -63,6 +63,14 @@ logging.info('Loading training dataset...')
 train_set = data.PatchDataset(params['train_partitions'], params['batch_size'], params['temporal_patch_size'],
                               params['spatial_patch_size'], params['spatial_stride'])
 
+logging.info('Loading validation dataset...')
+
+validation_set = data.ImageDataset(params['validation_partitions'], params['temporal_patch_size'])
+
+logging.info('Loading test dataset...')
+
+test_set = data.ImageDataset(params['test_partitions'], params['temporal_patch_size'])
+
 inputs = tf.placeholder(tf.float32)
 ground_truth = tf.placeholder(tf.float32)
 global_step = tf.Variable(0, trainable=False, name='global_step')

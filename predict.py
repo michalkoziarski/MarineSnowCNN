@@ -66,7 +66,7 @@ def predict_dataset(dataset, session, network, threshold=0.5):
     for _ in tqdm(range(dataset.length)):
         inputs, ground_truth = dataset.fetch()
 
-        prediction = network.outputs.eval(feed_dict={network.inputs: inputs}, session=session)[0]
+        prediction = network.outputs.eval(feed_dict={network.inputs: np.array([inputs])}, session=session)[0]
 
         if threshold is not None:
             prediction[prediction < threshold] = 0.0

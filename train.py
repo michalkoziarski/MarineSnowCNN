@@ -8,6 +8,7 @@ import tensorflow as tf
 from utils import get_network
 from tqdm import tqdm
 from pathlib import Path
+from predict import predict_dataset
 
 
 MODELS_PATH = Path(__file__).parent / 'models'
@@ -79,10 +80,15 @@ base_loss = tf.losses.mean_squared_error(network.outputs, ground_truth)
 weight_loss = params['weight_decay'] * tf.reduce_sum(tf.stack([tf.nn.l2_loss(weight) for weight in network.weights]))
 loss = base_loss + weight_loss
 
-tf.summary.scalar('base_loss', base_loss)
-tf.summary.scalar('weight_loss', weight_loss)
-tf.summary.scalar('total_loss', loss)
-tf.summary.image('ground_truth', ground_truth)
+accuracy = tf.placeholder(tf.float32, shape=[])
+precision = tf.placeholder(tf.float32, shape=[])
+recall = tf.placeholder(tf.float32, shape=[])
+f1_score = tf.placeholder(tf.float32, shape=[])
+
+tf.summary.scalar('accuracy', accuracy)
+tf.summary.scalar('precision', precision)
+tf.summary.scalar('recall', recall)
+tf.summary.scalar('f1_score', f1_score)
 tf.summary.image('inputs', inputs[:, params['temporal_patch_size'] // 2])
 tf.summary.image('outputs', network.outputs)
 
@@ -129,12 +135,29 @@ with tf.Session() as session:
 
             feed_dict = {inputs: x, ground_truth: y}
 
-            if batch < batches_per_epoch - 1:
-                session.run([train_step], feed_dict=feed_dict)
-            else:
-                _, summary = session.run([train_step, summary_step], feed_dict=feed_dict)
+            session.run([train_step], feed_dict=feed_dict)
 
-                saver.save(session, str(model_path), global_step=(epoch + 1))
-                summary_writer.add_summary(summary, epoch + 1)
+        logging.info('Evaluating model on validation set...')
+
+        _, metrics = predict_dataset(validation_set, session, network)
+
+        logging.info('Observed accuracy = %.4f, precision = %.4f, recall = %.4f, F1 score = %.4f' %
+                     (metrics['accuracy'], metrics['precision'], metrics['recall'], metrics['f1_score']))
+
+        summary = session.run([summary_step], feed_dict={
+            accuracy: metrics['accuracy'],
+            precision: metrics['precision'],
+            recall: metrics['recall'],
+            f1_score: metrics['f1_score']
+        })
+
+        saver.save(session, str(model_path), global_step=(epoch + 1))
+        summary_writer.add_summary(summary, epoch + 1)
 
     logging.info('Training complete.')
+    logging.info('Evaluating model on test set...')
+
+    _, metrics = predict_dataset(validation_set, session, network)
+
+    logging.info('Observed accuracy = %.4f, precision = %.4f, recall = %.4f, F1 score = %.4f' %
+                 (metrics['accuracy'], metrics['precision'], metrics['recall'], metrics['f1_score']))

@@ -13,14 +13,14 @@ ARCHIVE_PATH = DATA_PATH / 'AGH_MSD_v2.zip'
 
 
 def _binarize_frames(frames):
-    truncated_frames = np.empty(frames.shape + (1,), dtype=frames.dtype)
+    binarized_frames = np.empty(frames.shape + (1,), dtype=frames.dtype)
 
     for i in range(len(frames)):
-        truncated_frames[i, :, :, 0] = frames[i]
-        truncated_frames[i, truncated_frames[i] < 0.5] = 0.0
-        truncated_frames[i, truncated_frames[i] >= 0.5] = 1.0
+        binarized_frames[i, :, :, 0] = frames[i]
+        binarized_frames[i, binarized_frames[i] < 0.5] = 0.0
+        binarized_frames[i, binarized_frames[i] >= 0.5] = 1.0
 
-    return truncated_frames
+    return binarized_frames
 
 
 def _load_frames(partition_name, temporal_width):

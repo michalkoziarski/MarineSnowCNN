@@ -6,9 +6,8 @@ import numpy as np
 import tensorflow as tf
 
 from data import ImageDataset
-from utils import get_network
+from utils import get_network, median_filter
 from pathlib import Path
-from scipy.signal import medfilt
 from tqdm import tqdm
 
 
@@ -66,12 +65,7 @@ def filter_dataset(dataset, kernel_size, session, network, predictions=None, thr
     outputs = []
 
     for prediction, input in tqdm(zip(predictions, inputs), total=len(predictions)):
-        filtered = medfilt(input, kernel_size)[input.shape[0] // 2]
-        output = np.empty(input.shape[1:], dtype=input.dtype)
-        mask = np.dstack([prediction] * 3)
-        output[mask < threshold] = input[input.shape[0] // 2][mask < threshold]
-        output[mask >= threshold] = filtered[mask >= threshold]
-        outputs.append(output)
+        outputs.append(median_filter(input, kernel_size, prediction, threshold))
 
     return outputs
 

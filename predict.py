@@ -5,6 +5,7 @@ import imageio
 import numpy as np
 import tensorflow as tf
 
+from data import ImageDataset
 from utils import get_network
 from pathlib import Path
 from scipy.signal import medfilt
@@ -27,37 +28,6 @@ def load_model(session, model_name):
     saver.restore(session, checkpoint.model_checkpoint_path)
 
     return network
-
-
-def predict_inputs(inputs, threshold=0.5, session=None, network=None, model_name=None):
-    assert len(inputs.shape) == 5
-
-    session_passed = session is not None
-
-    if not session_passed:
-        session = tf.Session()
-
-    if network is None:
-        network = load_model(session, model_name)
-
-    predictions = []
-
-    for i in range(len(inputs)):
-        frames = inputs[i].copy()
-
-        prediction = network.outputs.eval(feed_dict={network.inputs: np.array([frames])},
-                                          session=session)[0]
-
-        if threshold is not None:
-            prediction[prediction < threshold] = 0.0
-            prediction[prediction >= threshold] = 1.0
-
-        predictions.append(prediction)
-
-    if not session_passed:
-        session.close()
-
-    return predictions
 
 
 def predict_dataset(dataset, session, network, threshold=0.5):
@@ -88,15 +58,17 @@ def predict_dataset(dataset, session, network, threshold=0.5):
     return np.array(predictions), metrics
 
 
-def filter_dataset(dataset, kernel_size, session, network, threshold=0.5):
-    predictions, _ = predict_dataset(dataset, session, network, threshold)
+def filter_dataset(dataset, kernel_size, session, network, predictions=None, threshold=0.5):
+    if predictions is None:
+        predictions, _ = predict_dataset(dataset, session, network, threshold)
+
     inputs = [dataset.fetch()[0] for _ in range(len(predictions))]
     outputs = []
 
-    for prediction, input in tqdm(zip(predictions, inputs)):
+    for prediction, input in tqdm(zip(predictions, inputs), total=len(predictions)):
         filtered = medfilt(input, kernel_size)[input.shape[0] // 2]
-        output = np.empty(input.shape, dtype=input.dtype)
-        output[prediction < threshold] = input[prediction < threshold]
+        output = np.empty(input.shape[1:], dtype=input.dtype)
+        output[prediction < threshold] = input[input.shape[0] // 2][prediction < threshold]
         output[prediction >= threshold] = filtered[prediction >= threshold]
         outputs.append(output)
 
@@ -107,33 +79,42 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-input', required=True,
-                        help='a directory of input frames that will be used in alphabetical order')
-    parser.add_argument('-output', required=True,
-                        help='a path for the output image')
-    parser.add_argument('-model_name', default='MarineSnowCNN',
-                        help='a name of a trained model')
+
+    parser.add_argument('-mode', type=str, choices=['detect', 'filter'], default='detect')
+    parser.add_argument('-model_name', type=str, default='MarineSnowCNN')
+    parser.add_argument('-output_path', type=str, default='outputs')
+    parser.add_argument('-dataset', type=str, default='Zakrzowek-B')
 
     args = parser.parse_args()
 
-    if not Path(args.input).exists():
-        raise ValueError('Incorrect input path.')
+    with tf.Session() as session:
+        params_path = Path(__file__).parent / 'params' / ('%s.json' % args.model_name)
 
-    assert len(list(Path(args.input).iterdir())) == 3
+        with open(params_path) as f:
+            params = json.load(f)
 
-    images = []
+        logging.info('Loading dataset...')
 
-    for path in Path(args.input).iterdir():
-        logging.info('Loading image from path %s...' % path)
+        dataset = ImageDataset([args.dataset], params['temporal_patch_size'])
 
-        image = imageio.imread(str(path))
+        logging.info('Restoring model...')
 
-        assert image.dtype == np.uint8
+        network = load_model(session, args.model_name)
 
-        images.append(np.array(image) / 255)
+        logging.info('Running prediction...')
 
-    logging.info('Running prediction...')
+        outputs, _ = predict_dataset(dataset, session, network)
 
-    prediction = predict_inputs(np.array([images]), model_name=args.model_name)[0]
+        if args.mode == 'filter':
+            logging.info('Filtering images...')
 
-    imageio.imwrite(args.output, prediction)
+            outputs = filter_dataset(dataset, params['temporal_patch_size'], session, network)
+
+        logging.info('Saving outputs to "%s"...' % args.output_path)
+
+        Path(args.output_path).mkdir(exist_ok=True)
+
+        for i in range(len(outputs)):
+            output = outputs[i]
+            path = Path(args.output_path) / ('%d.png' % i)
+            imageio.imwrite(path, output)

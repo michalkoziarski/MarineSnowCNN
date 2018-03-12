@@ -108,7 +108,7 @@ if __name__ == '__main__':
         if args.mode == 'filter':
             logging.info('Filtering images...')
 
-            outputs = filter_dataset(dataset, params['temporal_patch_size'], session, network)
+            outputs = filter_dataset(dataset, params['temporal_patch_size'], session, network, outputs)
 
         logging.info('Saving outputs to "%s"...' % args.output_path)
 

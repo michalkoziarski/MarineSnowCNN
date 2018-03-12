@@ -68,8 +68,9 @@ def filter_dataset(dataset, kernel_size, session, network, predictions=None, thr
     for prediction, input in tqdm(zip(predictions, inputs), total=len(predictions)):
         filtered = medfilt(input, kernel_size)[input.shape[0] // 2]
         output = np.empty(input.shape[1:], dtype=input.dtype)
-        output[prediction < threshold] = input[input.shape[0] // 2][prediction < threshold]
-        output[prediction >= threshold] = filtered[prediction >= threshold]
+        mask = np.dstack([prediction] * 3)
+        output[mask < threshold] = input[input.shape[0] // 2][mask < threshold]
+        output[mask >= threshold] = filtered[mask >= threshold]
         outputs.append(output)
 
     return outputs

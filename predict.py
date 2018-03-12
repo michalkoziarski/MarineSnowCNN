@@ -7,6 +7,7 @@ import tensorflow as tf
 
 from utils import get_network
 from pathlib import Path
+from scipy.signal import medfilt
 from tqdm import tqdm
 
 
@@ -85,6 +86,21 @@ def predict_dataset(dataset, session, network, threshold=0.5):
     metrics['f1_score'] = 2 * metrics['precision'] * metrics['recall'] / (metrics['precision'] + metrics['recall'])
 
     return np.array(predictions), metrics
+
+
+def filter_dataset(dataset, kernel_size, session, network, threshold=0.5):
+    predictions, _ = predict_dataset(dataset, session, network, threshold)
+    inputs = [dataset.fetch()[0] for _ in range(len(predictions))]
+    outputs = []
+
+    for prediction, input in tqdm(zip(predictions, inputs)):
+        filtered = medfilt(input, kernel_size)[input.shape[0] // 2]
+        output = np.empty(input.shape, dtype=input.dtype)
+        output[prediction < threshold] = input[prediction < threshold]
+        output[prediction >= threshold] = filtered[prediction >= threshold]
+        outputs.append(output)
+
+    return outputs
 
 
 if __name__ == '__main__':

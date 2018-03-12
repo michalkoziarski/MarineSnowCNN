@@ -18,9 +18,9 @@ def median_filter(input, kernel_size, mask, threshold=0.5):
         for j in range(input.shape[2]):
             for channel in range(input.shape[3]):
                 if mask[i, j] >= threshold:
-                    x_start = np.max(i - kernel_size // 2, 0)
+                    x_start = np.max((i - kernel_size // 2, 0))
                     x_end = i + kernel_size // 2 + 1
-                    y_start = np.max(j - kernel_size // 2, 0)
+                    y_start = np.max((j - kernel_size // 2, 0))
                     y_end = j + kernel_size // 2 + 1
 
                     output[i, j, channel] = np.median(input[:, x_start:x_end, y_start:y_end, channel])

@@ -118,4 +118,4 @@ if __name__ == '__main__':
         for i in range(len(outputs)):
             output = outputs[i]
             path = Path(args.output_path) / ('%d.png' % i)
-            imageio.imwrite(path, output)
+            imageio.imwrite(str(path), output)

@@ -79,6 +79,8 @@ if __name__ == '__main__':
     parser.add_argument('-model_name', type=str, default='MarineSnowCNN')
     parser.add_argument('-output_path', type=str, default='outputs')
     parser.add_argument('-dataset', type=str, default='Zakrzowek-B')
+    parser.add_argument('-threshold', type=float, default=0.5)
+    parser.add_argument('-kernel_size', type=int, default=3)
 
     args = parser.parse_args()
 
@@ -98,12 +100,12 @@ if __name__ == '__main__':
 
         logging.info('Running prediction...')
 
-        outputs, _ = predict_dataset(dataset, session, network)
+        outputs, _ = predict_dataset(dataset, session, network, args.threshold)
 
         if args.mode == 'filter':
             logging.info('Filtering images...')
 
-            outputs = filter_dataset(dataset, params['temporal_patch_size'], session, network, outputs)
+            outputs = filter_dataset(dataset, args.kernel_size, session, network, outputs, args.threshold)
 
         logging.info('Saving outputs to "%s"...' % args.output_path)
 

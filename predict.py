@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 
 from data import ImageDataset
-from utils import get_network, median_filter
+from utils import get_network, adaptive_median_filter
 from pathlib import Path
 from tqdm import tqdm
 
@@ -65,7 +65,7 @@ def filter_dataset(dataset, kernel_size, session, network, predictions=None, thr
     outputs = []
 
     for prediction, input in tqdm(zip(predictions, inputs), total=len(predictions)):
-        outputs.append(median_filter(input, kernel_size, prediction, threshold))
+        outputs.append(adaptive_median_filter(input, prediction, kernel_size, threshold))
 
     return outputs
 
@@ -80,7 +80,7 @@ if __name__ == '__main__':
     parser.add_argument('-output_path', type=str, default='outputs')
     parser.add_argument('-dataset', type=str, default='Zakrzowek-B')
     parser.add_argument('-threshold', type=float, default=0.5)
-    parser.add_argument('-kernel_size', type=int, default=3)
+    parser.add_argument('-kernel_size', type=int, default=1)
 
     args = parser.parse_args()
 
